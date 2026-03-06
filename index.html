@@ -586,20 +586,26 @@
     function drawAxes(x, y, width, height, xLabel, yLabel) {
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 2;
+
+      // Y axis
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x, y - height);
-      ctx.lineTo(x + width, y - height);
+      ctx.stroke();
+
+      // X axis
+      ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x + width, y);
       ctx.stroke();
 
+      // Axis labels
       ctx.fillStyle = '#334155';
       ctx.font = 'bold 16px Arial';
-      ctx.fillText(xLabel, x + width - 90, y + 28);
+      ctx.fillText(xLabel, x + width - 140, y + 30);
 
       ctx.save();
-      ctx.translate(x - 48, y - height / 2 + 30);
+      ctx.translate(x - 60, y - height / 2 + 40);
       ctx.rotate(-Math.PI / 2);
       ctx.fillText(yLabel, 0, 0);
       ctx.restore();
@@ -614,7 +620,9 @@
     function drawGrid(x, y, width, height, rows = 5) {
       ctx.strokeStyle = '#e4ebf5';
       ctx.lineWidth = 1;
-      for (let i = 1; i <= rows; i++) {
+
+      // start at 1 so the very top horizontal line is NOT drawn
+      for (let i = 1; i < rows; i++) {
         const gy = y - (height / rows) * i;
         ctx.beginPath();
         ctx.moveTo(x, gy);
@@ -622,12 +630,13 @@
         ctx.stroke();
       }
     }
+    }
 
     function drawBarGraph() {
       clearCanvas();
       const x = 85, y = 350, width = 540, height = 250;
       drawGrid(x, y, width, height, 5);
-      drawAxes(x, y, width, height, 'Category', 'Height');
+      drawAxes(x, y, width, height, 'Fertilizer Type', 'Average Plant Height (cm)');
 
       const values = [14, 19, 11, 16];
       const labels = ['A', 'B', 'C', 'D'];
@@ -653,7 +662,7 @@
       clearCanvas();
       const x = 85, y = 350, width = 540, height = 250;
       drawGrid(x, y, width, height, 5);
-      drawAxes(x, y, width, height, 'Time', 'Temp');
+      drawAxes(x, y, width, height, 'Time (min)', 'Water Temperature (°C)');
 
       const data = [90, 81, 73, 66, 60];
       const times = ['0', '2', '4', '6', '8'];
@@ -689,7 +698,7 @@
       clearCanvas();
       const x = 85, y = 350, width = 540, height = 250;
       drawGrid(x, y, width, height, 5);
-      drawAxes(x, y, width, height, 'Ramp Height', 'Distance');
+      drawAxes(x, y, width, height, 'Ramp Height (cm)', 'Distance Traveled (cm)');
 
       const points = [
         [10, 48], [15, 70], [20, 92], [25, 113], [30, 138]
