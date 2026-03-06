@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choose the Right Graph</title>
+  <style>
+    :root {
+      --bg: #f7fbff;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #5b6472;
+      --accent1: #6c63ff;
+      --accent2: #00bcd4;
+      --accent3: #ffb703;
+      --accent4: #ef476f;
+      --good: #1f9d55;
+      --bad: #d64545;
+      --shadow: 0 14px 30px rgba(31, 41, 55, 0.12);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(108, 99, 255, 0.08), transparent 25%),
+        radial-gradient(circle at top right, rgba(0, 188, 212, 0.08), transparent 20%),
+        linear-gradient(180deg, #f7fbff 0%, #eef7ff 100%);
+      line-height: 1.5;
+    }
+
+    .page {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #6c63ff, #00bcd4);
+      color: white;
+      padding: 32px;
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -30px;
+      top: -30px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      font-size: 1.05rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 22px;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-7 { grid-column: span 7; }
+    .span-5 { grid-column: span 5; }
+    .span-4 { grid-column: span 4; }
+
+    @media (max-width: 900px) {
+      .span-7, .span-5, .span-4 { grid-column: span 12; }
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.6rem;
+    }
+
+    .section-intro {
+      color: var(--muted);
+      margin-top: -6px;
+      margin-bottom: 18px;
+    }
+
+    .graph-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .tab-btn, .small-btn, .tree-btn, .restart-btn {
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      font: inherit;
+    }
+
+    .tab-btn {
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: #edf2ff;
+      color: #364152;
+      font-weight: 700;
+    }
+
+    .tab-btn.active {
+      background: var(--accent1);
+      color: white;
+      box-shadow: 0 8px 18px rgba(108, 99, 255, 0.25);
+    }
+
+    .tab-btn:hover, .small-btn:hover, .tree-btn:hover, .restart-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .graph-display {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .graph-display { grid-template-columns: 1fr; }
+    }
+
+    .graph-panel {
+      background: linear-gradient(180deg, #f9fbff, #f3f8ff);
+      border: 1px solid #e3ebf7;
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .graph-info {
+      background: #fbfdff;
+      border: 1px solid #e8eef7;
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .info-chip {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: white;
+    }
+
+    .chip-bar { background: var(--accent4); }
+    .chip-line { background: var(--accent1); }
+    .chip-scatter { background: var(--accent2); }
+
+    .graph-title {
+      margin: 6px 0 10px;
+      font-size: 1.2rem;
+    }
+
+    .graph-bullets {
+      margin: 10px 0 0 18px;
+      padding: 0;
+    }
+
+    .graph-bullets li { margin-bottom: 8px; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      border: 1px solid #dbe6f2;
+      padding: 10px 12px;
+      text-align: center;
+      background: white;
+    }
+
+    .data-table th {
+      background: #eef5ff;
+    }
+
+    .hint-box {
+      background: #fff8e8;
+      border-left: 5px solid var(--accent3);
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-top: 14px;
+      font-size: 0.97rem;
+    }
+
+    .canvas-wrap {
+      background: white;
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid #deebf7;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: white;
+      border-radius: 12px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .legend .l-bar::before { background: var(--accent4); }
+    .legend .l-line::before { background: var(--accent1); }
+    .legend .l-scatter::before { background: var(--accent2); }
+
+    .tree-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .tree-layout { grid-template-columns: 1fr; }
+    }
+
+    .tree-stage {
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #fcfdff, #f6faff);
+      border: 1px solid #e4edf8;
+      border-radius: 20px;
+      padding: 22px;
+    }
+
+    .question-badge {
+      display: inline-block;
+      background: #eaf2ff;
+      color: #274c77;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    .tree-question {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 0 0 18px;
+    }
+
+    .tree-choices {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tree-btn {
+      text-align: left;
+      padding: 15px 18px;
+      border-radius: 16px;
+      background: white;
+      border: 2px solid #dbe6f2;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .tree-btn:hover {
+      border-color: var(--accent2);
+      box-shadow: 0 10px 18px rgba(0, 188, 212, 0.12);
+    }
+
+    .feedback {
+      margin-top: 16px;
+      min-height: 44px;
+      font-weight: 700;
+    }
+
+    .feedback.good { color: var(--good); }
+    .feedback.bad { color: var(--bad); }
+
+    .path-box {
+      background: white;
+      border: 1px solid #e1ebf7;
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .path-box h3 {
+      margin-top: 0;
+    }
+
+    .path-list {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .path-list li {
+      background: #f5f9ff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid #e0ebf7;
+    }
+
+    .result-card {
+      background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(0,188,212,0.08));
+      border: 2px dashed #bdd4f2;
+      border-radius: 20px;
+      padding: 18px;
+      min-height: 120px;
+    }
+
+    .result-card h4 {
+      margin: 0 0 8px;
+      font-size: 1.1rem;
+    }
+
+    .restart-btn, .small-btn {
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--accent3);
+      color: #342600;
+      font-weight: 700;
+      box-shadow: 0 8px 16px rgba(255, 183, 3, 0.2);
+    }
+
+    .small-btn {
+      background: #edf2ff;
+      color: #334155;
+      box-shadow: none;
+      margin-top: 14px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+
+    .summary-box {
+      border-radius: 18px;
+      padding: 18px;
+      color: white;
+    }
+
+    .summary-box h3 { margin-top: 0; }
+    .bar-box { background: linear-gradient(135deg, #ef476f, #ff7b89); }
+    .line-box { background: linear-gradient(135deg, #6c63ff, #918bff); }
+    .scatter-box { background: linear-gradient(135deg, #00bcd4, #49d7ea); }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 22px;
+      font-size: 0.94rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>Choose the Right Graph</h1>
+      <p>
+        Learn the differences between bar graphs, line graphs, and scatter plots, then use an interactive decision tree to figure out which graph fits your data best.
+      </p>
+    </section>
+
+    <div class="grid">
+      <section class="card span-12">
+        <h2>1. Learn the Graph Types</h2>
+        <p class="section-intro">
+          Click each graph type to explore what it shows, when to use it, and what a matching data table might look like.
+        </p>
+
+        <div class="graph-tabs">
+          <button class="tab-btn active" data-graph="bar">Bar Graph</button>
+          <button class="tab-btn" data-graph="line">Line Graph</button>
+          <button class="tab-btn" data-graph="scatter">Scatter Plot</button>
+        </div>
+
+        <div class="graph-display">
+          <div class="graph-panel">
+            <div class="canvas-wrap">
+              <canvas id="graphCanvas" width="700" height="420" aria-label="Graph example"></canvas>
+            </div>
+            <div class="legend">
+              <span class="l-bar">Bar Graph</span>
+              <span class="l-line">Line Graph</span>
+              <span class="l-scatter">Scatter Plot</span>
+            </div>
+          </div>
+
+          <div class="graph-info">
+            <span id="graphChip" class="info-chip chip-bar">Bar Graph</span>
+            <h3 id="graphTitle" class="graph-title">Compare categories or groups</h3>
+            <p id="graphDescription"></p>
+            <ul id="graphBullets" class="graph-bullets"></ul>
+            <table class="data-table" id="dataTable"></table>
+            <div class="hint-box" id="graphHint"></div>
+            <button class="small-btn" id="cycleBtn">Show Next Graph Type</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <h2>2. Interactive Graph Decision Tree</h2>
+        <p class="section-intro">
+          Answer each question to move through the decision tree. You can retry as many times as you want.
+        </p>
+
+        <div class="tree-layout">
+          <div class="tree-stage">
+            <div>
+              <span class="question-badge">Decision Tree</span>
+              <p class="tree-question" id="treeQuestion"></p>
+              <div class="tree-choices" id="treeChoices"></div>
+              <div class="feedback" id="feedback"></div>
+            </div>
+            <div>
+              <button class="restart-btn" id="restartBtn">Start Over</button>
+            </div>
+          </div>
+
+          <div class="path-box">
+            <h3>Your Path</h3>
+            <ul class="path-list" id="pathList">
+              <li>Start the tree to see your decision path.</li>
+            </ul>
+
+            <div class="result-card" id="resultCard">
+              <h4>Result</h4>
+              <p>Make your choices to reveal the best graph type.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <h2>Quick Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-box bar-box">
+            <h3>Bar Graph</h3>
+            <p>Use it when you are comparing categories or groups.</p>
+          </div>
+          <div class="summary-box line-box">
+            <h3>Line Graph</h3>
+            <p>Use it when data changes continuously, often over time.</p>
+          </div>
+          <div class="summary-box scatter-box">
+            <h3>Scatter Plot</h3>
+            <p>Use it when you want to see the relationship between two numerical variables.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <p class="footer-note">Built as a static HTML/CSS/JS page for GitHub Pages.</p>
+  </div>
+
+  <script>
+    const graphData = {
+      bar: {
+        label: 'Bar Graph',
+        chipClass: 'chip-bar',
+        title: 'Compare categories or groups',
+        description: 'A bar graph is best when your x-axis is made of separate categories rather than a continuous number line.',
+        bullets: [
+          'Useful for comparing different groups.',
+          'Bars are separated because categories are distinct.',
+          'Examples: class periods, fertilizer types, animal species.'
+        ],
+        headers: ['Category', 'Average Plant Height (cm)'],
+        rows: [
+          ['Fertilizer A', '14'],
+          ['Fertilizer B', '19'],
+          ['Fertilizer C', '11'],
+          ['Fertilizer D', '16']
+        ],
+        hint: 'Ask yourself: Am I comparing named groups or categories? If yes, a bar graph is often the right choice.'
+      },
+      line: {
+        label: 'Line Graph',
+        chipClass: 'chip-line',
+        title: 'Show change over a continuous variable',
+        description: 'A line graph works best when the data changes along a continuous scale, especially over time.',
+        bullets: [
+          'Best for trends and patterns over time.',
+          'Points are connected to show continuous change.',
+          'Examples: temperature, distance, growth over days.'
+        ],
+        headers: ['Time (min)', 'Water Temperature (°C)'],
+        rows: [
+          ['0', '90'],
+          ['2', '81'],
+          ['4', '73'],
+          ['6', '66'],
+          ['8', '60']
+        ],
+        hint: 'Ask yourself: Is my x-axis a continuous variable like time, distance, or temperature? If yes, think line graph.'
+      },
+      scatter: {
+        label: 'Scatter Plot',
+        chipClass: 'chip-scatter',
+        title: 'Look for a relationship between two numeric variables',
+        description: 'A scatter plot helps show whether two measured numerical variables appear to be related.',
+        bullets: [
+          'Each point shows one pair of values.',
+          'Useful for spotting positive, negative, or no correlation.',
+          'Examples: hours studied vs test score, height vs arm span.'
+        ],
+        headers: ['Ramp Height (cm)', 'Distance Traveled (cm)'],
+        rows: [
+          ['10', '48'],
+          ['15', '70'],
+          ['20', '92'],
+          ['25', '113'],
+          ['30', '138']
+        ],
+        hint: 'Ask yourself: Do I have two numerical variables and want to see whether they are related? That points to a scatter plot.'
+      }
+    };
+
+    const tabs = document.querySelectorAll('.tab-btn');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const ctx = graphCanvas.getContext('2d');
+    const graphChip = document.getElementById('graphChip');
+    const graphTitle = document.getElementById('graphTitle');
+    const graphDescription = document.getElementById('graphDescription');
+    const graphBullets = document.getElementById('graphBullets');
+    const dataTable = document.getElementById('dataTable');
+    const graphHint = document.getElementById('graphHint');
+    const cycleBtn = document.getElementById('cycleBtn');
+
+    let currentGraph = 'bar';
+
+    function drawAxes(x, y, width, height, xLabel, yLabel) {
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y - height);
+      ctx.lineTo(x + width, y - height);
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + width, y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#334155';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(xLabel, x + width - 90, y + 28);
+
+      ctx.save();
+      ctx.translate(x - 48, y - height / 2 + 30);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
+    }
+
+    function drawGrid(x, y, width, height, rows = 5) {
+      ctx.strokeStyle = '#e4ebf5';
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= rows; i++) {
+        const gy = y - (height / rows) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, gy);
+        ctx.lineTo(x + width, gy);
+        ctx.stroke();
+      }
+    }
+
+    function drawBarGraph() {
+      clearCanvas();
+      const x = 85, y = 350, width = 540, height = 250;
+      drawGrid(x, y, width, height, 5);
+      drawAxes(x, y, width, height, 'Category', 'Height');
+
+      const values = [14, 19, 11, 16];
+      const labels = ['A', 'B', 'C', 'D'];
+      const max = 20;
+      const barWidth = 80;
+      const gap = 40;
+      const colors = ['#ef476f', '#ff7b89', '#f45b69', '#ff99ac'];
+
+      values.forEach((value, i) => {
+        const barHeight = (value / max) * height;
+        const bx = x + 40 + i * (barWidth + gap);
+        const by = y - barHeight;
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(bx, by, barWidth, barHeight);
+        ctx.fillStyle = '#334155';
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText(labels[i], bx + 30, y + 24);
+        ctx.fillText(String(value), bx + 24, by - 10);
+      });
+    }
+
+    function drawLineGraph() {
+      clearCanvas();
+      const x = 85, y = 350, width = 540, height = 250;
+      drawGrid(x, y, width, height, 5);
+      drawAxes(x, y, width, height, 'Time', 'Temp');
+
+      const data = [90, 81, 73, 66, 60];
+      const times = ['0', '2', '4', '6', '8'];
+      const max = 100;
+      const step = width / (data.length - 1);
+
+      ctx.strokeStyle = '#6c63ff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+
+      data.forEach((value, i) => {
+        const px = x + i * step;
+        const py = y - (value / max) * height;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+      data.forEach((value, i) => {
+        const px = x + i * step;
+        const py = y - (value / max) * height;
+        ctx.fillStyle = '#6c63ff';
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#334155';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText(times[i], px - 4, y + 24);
+      });
+    }
+
+    function drawScatterPlot() {
+      clearCanvas();
+      const x = 85, y = 350, width = 540, height = 250;
+      drawGrid(x, y, width, height, 5);
+      drawAxes(x, y, width, height, 'Ramp Height', 'Distance');
+
+      const points = [
+        [10, 48], [15, 70], [20, 92], [25, 113], [30, 138]
+      ];
+      const maxX = 35;
+      const maxY = 150;
+
+      points.forEach(([pxVal, pyVal]) => {
+        const px = x + (pxVal / maxX) * width;
+        const py = y - (pyVal / maxY) * height;
+        ctx.fillStyle = '#00bcd4';
+        ctx.beginPath();
+        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function populateTable(headers, rows) {
+      dataTable.innerHTML = '';
+      const thead = document.createElement('thead');
+      const trHead = document.createElement('tr');
+      headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        trHead.appendChild(th);
+      });
+      thead.appendChild(trHead);
+      dataTable.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(cell => {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      dataTable.appendChild(tbody);
+    }
+
+    function updateGraph(graphKey) {
+      currentGraph = graphKey;
+      const graph = graphData[graphKey];
+      tabs.forEach(btn => btn.classList.toggle('active', btn.dataset.graph === graphKey));
+      graphChip.className = `info-chip ${graph.chipClass}`;
+      graphChip.textContent = graph.label;
+      graphTitle.textContent = graph.title;
+      graphDescription.textContent = graph.description;
+      graphHint.textContent = graph.hint;
+
+      graphBullets.innerHTML = '';
+      graph.bullets.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        graphBullets.appendChild(li);
+      });
+
+      populateTable(graph.headers, graph.rows);
+
+      if (graphKey === 'bar') drawBarGraph();
+      if (graphKey === 'line') drawLineGraph();
+      if (graphKey === 'scatter') drawScatterPlot();
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => updateGraph(btn.dataset.graph));
+    });
+
+    cycleBtn.addEventListener('click', () => {
+      const order = ['bar', 'line', 'scatter'];
+      const nextIndex = (order.indexOf(currentGraph) + 1) % order.length;
+      updateGraph(order[nextIndex]);
+    });
+
+    const treeNodes = {
+      start: {
+        question: 'Is your x-axis made of categories or groups?',
+        choices: [
+          { text: 'Yes, categories or groups', next: 'barResult', correct: true, note: 'Categories usually point to a bar graph.' },
+          { text: 'No, it is a number line or continuous scale', next: 'barCheck', correct: true, note: 'Good. Let\'s test whether a bar graph would still make sense.' }
+        ]
+      },
+      barCheck: {
+        question: 'Would a bar graph clearly show this kind of data?',
+        prompt: 'Think about data like time vs. temperature or ramp height vs. distance. These are measured along a continuous scale, not separate categories.',
+        choices: [
+          { text: 'No, a bar graph would not be the best choice', next: 'continuousCheck', correct: true, note: 'Exactly. Bar graphs compare categories, but this kind of data is continuous.' },
+          { text: 'Yes, a bar graph would work well', next: 'barRetry', correct: false, note: 'Not quite. A bar graph is best for categories or groups, not continuous data.' }
+        ]
+      },
+      barRetry: {
+        question: 'Why not a bar graph here?',
+        prompt: 'Because the x-axis values are continuous, a bar graph would break up the pattern instead of showing how the data changes or relates.',
+        choices: [
+          { text: 'Got it — continue through the tree', next: 'continuousCheck', correct: true, note: 'Nice correction. Now keep going to decide which graph fits best.' }
+        ]
+      },
+      continuousCheck: {
+        question: 'Are you showing how one variable changes over time or another continuous variable?',
+        choices: [
+          { text: 'Yes, I want to show change or a trend', next: 'lineResult', correct: true, note: 'Continuous change is often best shown with a line graph.' },
+          { text: 'No, I want to see whether two numerical variables are related', next: 'scatterResult', correct: true, note: 'That points toward a scatter plot.' }
+        ]
+      },
+      barResult: {
+        result: 'Bar Graph',
+        reason: 'You are comparing categories or groups.',
+        colorClass: 'chip-bar'
+      },
+      lineResult: {
+        result: 'Line Graph',
+        reason: 'You are showing change across a continuous variable.',
+        colorClass: 'chip-line'
+      },
+      scatterResult: {
+        result: 'Scatter Plot',
+        reason: 'You are looking for a relationship between two numerical variables.',
+        colorClass: 'chip-scatter'
+      }
+    };
+
+    const treeQuestion = document.getElementById('treeQuestion');
+    const treeChoices = document.getElementById('treeChoices');
+    const feedback = document.getElementById('feedback');
+    const pathList = document.getElementById('pathList');
+    const resultCard = document.getElementById('resultCard');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let currentNode = 'start';
+    let pathHistory = [];
+
+    function renderPath() {
+      pathList.innerHTML = '';
+      if (!pathHistory.length) {
+        pathList.innerHTML = '<li>Start the tree to see your decision path.</li>';
+        return;
+      }
+      pathHistory.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        pathList.appendChild(li);
+      });
+    }
+
+    function renderResult(node) {
+      resultCard.innerHTML = `
+        <h4>${node.result}</h4>
+        <p>${node.reason}</p>
+        <p><strong>Tip:</strong> Make sure your graph matches the kind of question your data is answering.</p>
+      `;
+      treeQuestion.textContent = 'You reached a graph choice.';
+      treeChoices.innerHTML = '';
+      feedback.textContent = 'Nice work — you can restart and try the tree again.';
+      feedback.className = 'feedback good';
+    }
+
+    function renderTree() {
+      const node = treeNodes[currentNode];
+      if (node.result) {
+        renderResult(node);
+        return;
+      }
+
+      treeQuestion.textContent = node.question;
+      treeChoices.innerHTML = '';
+
+      if (node.prompt) {
+        resultCard.innerHTML = `
+          <h4>Think About It</h4>
+          <p>${node.prompt}</p>
+        `;
+      } else {
+        resultCard.innerHTML = `
+          <h4>Result</h4>
+          <p>Answer the questions to reveal the best graph type for your data.</p>
+        `;
+      }
+
+      node.choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'tree-btn';
+        btn.textContent = choice.text;
+        btn.addEventListener('click', () => {
+          feedback.textContent = choice.note;
+          feedback.className = `feedback ${choice.correct ? 'good' : 'bad'}`;
+          pathHistory.push(`${node.question} → ${choice.text}`);
+          renderPath();
+          currentNode = choice.next;
+          setTimeout(() => renderTree(), 250);
+        });
+        treeChoices.appendChild(btn);
+      });
+    }
+
+    function restartTree() {
+      currentNode = 'start';
+      pathHistory = [];
+      feedback.textContent = 'You can retry the tree as many times as you want.';
+      feedback.className = 'feedback';
+      renderPath();
+      renderTree();
+    }
+
+    restartBtn.addEventListener('click', restartTree);
+
+    updateGraph('bar');
+    restartTree();
+  </script>
+</body>
+</html>
